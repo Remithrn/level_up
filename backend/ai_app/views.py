@@ -1,4 +1,3 @@
-# genai.configure(api_key="AIzaSyAZLISV2DgQnzPib6fjCZ5y8f4UmuTNPD8")
 
 from django.shortcuts import render
 from rest_framework.views import APIView
