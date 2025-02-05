@@ -1,0 +1,116 @@
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import axios from 'axios';
+import { act } from 'react';
+
+const initialState = {
+  access: localStorage.getItem('access'),
+  refresh: localStorage.getItem('refresh'),
+  isAuthenticated: false,
+  user: null,
+  message: "test",
+  loading: false,
+  error: null
+};
+
+export const login = createAsyncThunk(
+  'auth/login',
+  async ({ email, password }, { rejectWithValue }) => {
+    try {
+      const config = {
+        headers: {
+          "Content-Type": "application/json"
+        }
+      };
+      const body = JSON.stringify({ email, password });
+      const res = await axios.post("http://localhost:8000/dj-rest-auth/login/", body, config);
+      return res.data;
+    } catch (err) {
+      console.log(err.response)
+      return rejectWithValue(err.response.data);
+    }
+  }
+);
+
+export const serverlogout =createAsyncThunk(
+  'auth/logout',
+  async()=>{
+    try{
+      const config={
+        headers: {
+          "Content-Type": "application/json"
+        }
+        const res = await axios.post("http://localhost:8000/dj-rest-auth/logout/", config);
+      }
+    }
+  }
+)
+
+const authSlice = createSlice({
+  name: 'auth',
+  initialState,
+  reducers: {
+    setCredentials: (state, action) => {
+      const { access, refresh, user } = action.payload;
+      state.access = access;
+      state.refresh = refresh;
+      state.isAuthenticated = true;
+      state.user = user;
+      localStorage.setItem('access', access);
+      localStorage.setItem('refresh', refresh);
+    },
+    clearCredentials: (state) => {
+      state.access = null;
+      state.refresh = null;
+      state.isAuthenticated = false;
+      state.user = null;
+      localStorage.removeItem('access');
+      localStorage.removeItem('refresh');
+    },
+    setUser: (state, action) => {
+      state.user = action.payload;
+    },
+    setMessage: (state, action) => {
+      state.message = action.payload;
+    },
+    clearMessage: (state) => {
+      state.message = null;
+    },
+    logout: (state) => {
+      authSlice.caseReducers.clearCredentials(state);
+      console.log("re")
+      state.message = "User has logged out";
+    }
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(login.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(login.fulfilled, (state, action) => {
+        const { access, refresh, user } = action.payload;
+        authSlice.caseReducers.setCredentials(state, { payload: { access, refresh, user } });
+        state.loading = false;
+        state.message = "Login has succeeded";
+      })
+      .addCase(login.rejected, (state, action) => {
+        authSlice.caseReducers.clearCredentials(state);
+        console.log("RE",action.payload)
+        state.loading = false;
+        state.error = action.payload || "Login has failed";
+        state.message = action.payload?.email||action.payload?.password||action.payload?.non_field_errors
+        || "Login Failed"
+      });
+  }
+});
+
+export const {
+  setCredentials,
+  clearCredentials,
+  setUser,
+  setMessage,
+  clearMessage,
+  logout
+} = authSlice.actions;
+
+export default authSlice.reducer;

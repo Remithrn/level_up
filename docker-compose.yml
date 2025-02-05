@@ -1,0 +1,137 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:15-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    networks:
+      - backend-network
+    restart: always
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${DB_USER}", "-d", "${DB_NAME}"]
+      interval: 10s
+      retries: 5
+      start_period: 10s
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    user: appuser
+    command: daphne -b 0.0.0.0 -p 8000 backend_site.asgi:application
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - static_volume:/app/static
+      - media_volume:/app/media
+    env_file:
+      - ./backend/.env
+    environment:
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=db
+      - DB_PORT=5432
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - backend-network
+    restart: always
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - static_volume:/app/static
+      - media_volume:/app/media
+    depends_on:
+      backend:
+        condition: service_started
+    networks:
+      - backend-network
+    restart: always
+
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
+    networks:
+      - backend-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 3
+    restart: always
+
+  celery:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    entrypoint: ["celery", "-A", "backend_site", "worker", "-l", "info"]
+    user: appuser
+    volumes:
+      - ./backend:/app
+    env_file:
+      - ./backend/.env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    networks:
+      - backend-network
+    restart: always
+
+  celery-beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    entrypoint:
+      [
+        "celery",
+        "-A",
+        "backend_site",
+        "beat",
+        "-l",
+        "info",
+        "--schedule=/app/celerybeat/celerybeat-schedule",
+      ]
+    user: appuser
+    volumes:
+      - ./backend:/app
+      - celerybeat_data:/app/celerybeat
+    env_file:
+      - ./backend/.env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    networks:
+      - backend-network
+    restart: always
+
+volumes:
+  postgres_data:
+  celerybeat_data:
+  static_volume:
+  media_volume:
+
+networks:
+  backend-network:
+    driver: bridge
