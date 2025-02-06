@@ -162,7 +162,7 @@ Follow these steps to set up and run the backend locally:
   Background tasks such as sending email reminders are automatically handled by Celery as part of the Docker Compose setup.
 
 - **Frontend:**  
-  For the interactive user interface, please refer to our separate [Frontend Repository](https://github.com/yourusername/levelup-frontend).
+  For the interactive user interface, please refer to our separate [Frontend Repository](https://github.com/Remithrn/level_up_frontend).
 
 ## Deployment
 
@@ -222,8 +222,7 @@ Follow these steps to set up and run the backend locally:
 ## Contact Information
 
 - **Email:** [nair.remith@gmail.com]
-- **GitHub:** [YourGitHubProfile](https://github.com/Remithrn)
-- **LinkedIn:** [YourLinkedInProfile](https://www.linkedin.com/in/remith-r-nair-/)
+- **GitHub:** [GitHubProfile](https://github.com/Remithrn)
+- **LinkedIn:** [LinkedInProfile](https://www.linkedin.com/in/remith-r-nair-/)
 
 ---
-
