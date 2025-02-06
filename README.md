@@ -1,7 +1,3 @@
-Below is the updated README that includes details about the chatbot feature and a link to the frontend repository.
-
----
-
 # Level Up Backend
 
 **Level Up** is an AI-powered interactive platform designed to elevate the learning experience through gamification, social interaction, and AI-driven challenges. This repository contains the backend portion of the application, built with Django, which supports features such as user management, daily challenges, chat/group interactions, and an in-app chatbot. The frontend is maintained in a separate repository.

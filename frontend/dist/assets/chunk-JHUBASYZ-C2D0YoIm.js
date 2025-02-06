@@ -1,1 +1,0 @@
-import{aa as u,a1 as x,bU as p,a5 as v,j as C}from"./index-DdC0FHAS.js";var e=u((r,t)=>{var s;const{as:l,className:c,children:n,...d}=r,f=l||"div",m=x(t),{slots:a,classNames:o}=p(),i=v(o==null?void 0:o.footer,c);return C.jsx(f,{ref:m,className:(s=a.footer)==null?void 0:s.call(a,{class:i}),...d,children:n})});e.displayName="NextUI.CardFooter";var R=e;export{R as c};
